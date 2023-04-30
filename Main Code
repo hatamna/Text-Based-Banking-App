@@ -1,0 +1,237 @@
+'''
+Haytham A - April 2 2023
+
+This banking app allows the user to login, then modify their 
+starting balance of 1,000 CA$ as they wish
+'''
+import time
+import random
+import os
+from colorama import Fore
+
+#Creates list to keep track of transactions
+transList = []
+      
+#prints loading screen effect
+def loadingSequence():
+  for i in range(3):
+    time.sleep(1)
+    print(".")
+
+#prints out a menu of posssible actions
+def menu():
+  print(Fore.GREEN + "→ Select an action to perform: " + Fore.WHITE)
+  print("\n1. Withdrawal\n2. Deposit\n3. View Balance\n4. Profile\n5. Quit\n\n6. Lottery\n7. eTransfer\n8. About\n9. Transactions\n")
+
+#empties out screen, resulting in a better UX
+def clearScreen():
+  input("→ Press Enter to continue...")
+  os.system('clear')
+  
+#an extention of the loadingSequence()
+def quitSequence():
+  os.system('clear')
+  with open('Balance.txt', 'w') as f:
+      f.write(str(balance))
+  with open('Transactions.txt', 'r+') as f:
+        f.write(str(transList))
+  print(Fore.GREEN + "→ Thank you for banking with netBank®."  + Fore.WHITE + "\n\nYour final balance is " +
+  str(balance))
+  print(Fore.RED + "\nLogging out and quitting" + Fore.WHITE)
+  loadingSequence()
+  time.sleep(1)
+  
+#taking money out is handled by this
+def withdrawalFunc(b):
+  try:
+    wAmount = float(input("\nHow much to withdraw?: "))
+    if wAmount <= b:
+      b -= wAmount
+      transList.append("(Withdrawal) -$" + str(wAmount))
+      print("\nNew Balance: $" + str(b) + "\n")
+      with open('Balance.txt', 'w') as f:
+        f.write(str(b))
+    else:
+      print("Not Enough Money :(")
+  except ValueError:
+    print("Are you sure that was a number?")
+  return b
+  
+# putting money in is handled by this
+def depositFunc(d):
+  try:
+      print("\nCurrent balance: $" + str(d))
+      dAmount = float(input(Fore.WHITE + "\n\bHow much to deposit?: "))
+      d += dAmount
+      transList.append("(Deposit) +" + str(dAmount))
+      print("New Balance: $" + str(d))
+      with open('Balance.txt', 'w') as f:
+        f.write(str(d))
+  except ValueError:
+    print("Are are you sure you wrote a number?")
+  return d
+  
+#prints account and balance info
+def balanceProcedure():
+  print("\nUser: " + username + "\nPassword: " + ('*' * len(password)))
+  print(Fore.GREEN + "\n\nBalance: $" + str(balance) + "\n" + Fore.WHITE)
+  
+#asks user for password before displaying sensitive info
+def profileProcedure():
+  passCheck = input("\nEnter password to view profile: ")
+  if passCheck == password:
+    print("\nVerifying User ")
+    loadingSequence()
+    time.sleep(1)
+    print("Success!\n\n")
+    os.system('clear')
+    print("User: " + username + "\nPassword: " + password)
+    print("\nAddress: 149 Berrigan Dr, Nepean, ON \n")
+    print("Postal Code: K2J 5C6")
+    print("\nBalance: $" + str(balance) + "\n")
+  else:
+    print("\nVerifying User ")
+    loadingSequence()
+    time.sleep(1)
+    print("Wrong Password.")
+    
+#simulates lottery
+def lotteryFunc(l):
+  confirm = input("Play the instant lottery for $5? (Y/N): ")
+  if confirm.lower() == 'y':
+    l -= 5
+    transList.append("(Lottery Cost) -" + str(5))
+    list = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,20, 75, 125, 350, 1000, 10000]
+    int = random.randrange(0,len(list))
+    winAmount = list[int]
+    l+=winAmount
+    if winAmount > 1:
+      transList.append("(Lottery Win) +$" + str(winAmount))
+    print("New Balance: " + str(l))
+    print ("\nYou win $" + str(winAmount) + " dollars!")
+    with open('Balance.txt', 'w') as f:
+      f.write(str(l))
+  elif confirm.lower() == 'n':
+    print("Ok. Maybe next time.")
+  else:
+    print("Invalid Response.")
+  return l
+  
+#way to send money
+def eTransfer(b, name):
+  print("Current Balance: $" + str(b))
+  print("\nFrom: " + name)
+  print(Fore.RED + "*Write 'cancel' to cancel transaction*" + Fore.WHITE)
+  nameTo = input("To: ")
+  if nameTo.lower() == 'cancel':
+    print("\nCancelling...\n")
+  else:
+    try: 
+      amountTo = float(input("Amount: "))
+      if amountTo > b:
+        print(Fore.RED + "Not Enough Money!" + Fore.WHITE)
+      elif amountTo < b:
+        b -= amountTo
+        transList.append("(eTransfer To " + nameTo + ") -$" + str(amountTo))
+        print(Fore.GREEN + "eTransfer successful" + Fore.WHITE)
+        with open('Balance.txt', 'w') as f:
+          f.write(str(b))
+    except ValueError:
+      print("Are you sure that was a number?")
+  print("New Balance: $" + str(b))
+  return b
+  
+#displays facts about netBank
+def aboutUs():
+  print(Fore.GREEN + "\nnetBank® was founded in 2007 by industry veterans, in collaboration with some of the brightest minds in tech with the sole purpose of providing online banking to those who may not have a bank near them.\n\nFounder: Haytham A\n\nIn 2017, on our 10th anniversary, we were aquired by CIBC®, who wanted to increase their online presence, however, we are still free to operate independantly with the backing of one of the biggest banks in the country.\n" + Fore.WHITE)
+  
+#prints out all transacions made
+def transactions(list, balance):
+  if os.stat("Balance.txt").st_size > 0:
+    print(Fore.BLUE + "\nList Of Previous Transactions: ")
+    newList = open('Transactions.txt', 'r').read().replace('[', '')
+    newList = open('Transactions.txt', 'r').read().replace(']', '')
+    newList = newList.split(',')
+    for i in range(len(newList)):
+      print("PREVIOUS TRANSACTION " + str(i+1) + ": " + newList[i])
+    print(Fore.WHITE)
+  if len(list) < 1:
+    print(Fore.RED + "\nNo Transactions Yet.\n" + Fore.WHITE)
+  else:
+    for i in range(len(list)):
+      print("\nTransaction number " + str(i + 1) + ": " + list[i])
+  print("\nCurrent Balance: $" + str(balance) + "\n")
+  
+# ----------------------------------------------------------
+
+# Start of visible program
+while True:
+  print(Fore.RED + "PROUDLY MADE IN CANADA!" + Fore.WHITE + "\nWelcome to the netBank® App!\n")
+  proc = input(Fore.WHITE + "1. Sign Up \n2. Log In\n\nNOTE: For security purposes, only one person's login info can be saved on a device. Signing up will erase the previous user's login data.\n\n→ ")
+  if proc == '1':
+    username = input("\nCreate a username: ")
+    password = input("Create a password: ")
+    credentials = username+' '+password
+    #Saves profile info
+    with open('Profile.txt', 'w') as f:
+      f.write(credentials)
+    #Resets balance to $1000
+    with open('Balance.txt', 'w') as f:
+      f.write(str(1000))
+    with open('Transactions.txt', 'w') as f:
+      f.write('')
+    break
+  elif proc == '2':
+    #Asks for username and password
+    username = input("\nEnter your username: ")
+    password = input("Enter your password: ")
+    credentials = username+' '+password
+    with open('Profile.txt', 'r') as f:
+      if credentials == f.read():
+        break
+      else:
+        print("Wrong username or password!")
+        clearScreen()
+  else: 
+    print("\nError\n")
+    clearScreen()
+
+#Creates effect of logging in
+print("\nVerifying User")
+loadingSequence()
+time.sleep(1)
+print("Success!\n\n")
+
+while True:
+  #Checks if text file is empty, if so sets ballance to $1000
+  if os.stat("Balance.txt").st_size == 0:
+    balance = 1000.0
+  else:
+    with open('Balance.txt') as f:
+      b = f.readlines()
+      balance = float(b[0])        
+  clearScreen()
+  menu()
+  action = input("→ ")
+  match action.lower():
+    case '1' | 'withdrawal':
+      balance = withdrawalFunc(balance)
+    case '2' | 'deposit':
+      balance = depositFunc(balance)
+    case '3' | 'view balance':
+      balanceProcedure()
+    case '4' | 'profile':
+      profileProcedure()
+    case '5' | 'quit':
+      quitSequence()
+      break
+    case '6' | 'lottery':
+      balance = lotteryFunc(balance)
+    case '7' | 'etransfer':
+      balance = eTransfer(balance, username)
+    case '8' | 'about':
+      aboutUs()
+    case '9' | 'transactions':
+      transactions(transList, balance)
+    case _:
+      print("\nFail!")
